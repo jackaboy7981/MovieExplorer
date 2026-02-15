@@ -23,6 +23,7 @@ def upgrade() -> None:
     op.create_table(
         "contributor",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True, nullable=False),
+        sa.Column("imdb_reference_id", sa.String(length=32), nullable=True),
         sa.Column("name", sa.String(length=255), nullable=False),
     )
 

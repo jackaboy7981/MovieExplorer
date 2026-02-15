@@ -35,6 +35,7 @@ def upgrade() -> None:
     op.create_table(
         "title",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True, nullable=False),
+        sa.Column("imdb_reference_id", sa.String(length=32), nullable=True),
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("media_type", sa.Integer(), nullable=False),
         sa.Column("release_year", sa.Integer(), nullable=True),

@@ -8,9 +8,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
 COPY . .
-
-RUN pip install pylint && pylint app
+RUN chmod +x app/scripts/startup.sh
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["app/scripts/startup.sh"]

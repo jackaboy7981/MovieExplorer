@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: movie_postgres
+    environment:
+      POSTGRES_USER: movie_user
+      POSTGRES_PASSWORD: movie_pass
+      POSTGRES_DB: movie_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U movie_user -d movie_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./Backend
+    container_name: movie_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://movie_user:movie_pass@db:5432/movie_db
+      ENV: dev
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:

@@ -61,8 +61,17 @@ def ensure_lookup(cur, table_name: str, name: str) -> int:
     return cur.fetchone()[0]
 
 
-def ensure_contributor(cur, name: str) -> int:
-    """Return contributor id by name, creating if missing."""
+def ensure_contributor(cur, name: str, imdb_reference_id: str | None) -> int:
+    """Return contributor id by IMDb reference id/name, creating if missing."""
+    if imdb_reference_id:
+        cur.execute(
+            "SELECT id FROM contributor WHERE imdb_reference_id = %s LIMIT 1",
+            (imdb_reference_id,),
+        )
+        row = cur.fetchone()
+        if row:
+            return row[0]
+
     cur.execute(
         "SELECT id FROM contributor WHERE name = %s LIMIT 1",
         (name,),
@@ -72,14 +81,33 @@ def ensure_contributor(cur, name: str) -> int:
         return row[0]
 
     cur.execute(
-        "INSERT INTO contributor (name) VALUES (%s) RETURNING id",
-        (name,),
+        """
+        INSERT INTO contributor (imdb_reference_id, name)
+        VALUES (%s, %s)
+        RETURNING id
+        """,
+        (imdb_reference_id, name),
     )
     return cur.fetchone()[0]
 
 
-def ensure_title(cur, title_name: str, media_type_id: int, release_year: int | None) -> int:
-    """Return title id for (title, media_type, release_year), creating if missing."""
+def ensure_title(
+    cur,
+    imdb_reference_id: str | None,
+    title_name: str,
+    media_type_id: int,
+    release_year: int | None,
+) -> int:
+    """Return title id by IMDb reference id or fields, creating if missing."""
+    if imdb_reference_id:
+        cur.execute(
+            "SELECT id FROM title WHERE imdb_reference_id = %s LIMIT 1",
+            (imdb_reference_id,),
+        )
+        row = cur.fetchone()
+        if row:
+            return row[0]
+
     cur.execute(
         """
         SELECT id
@@ -100,11 +128,11 @@ def ensure_title(cur, title_name: str, media_type_id: int, release_year: int | N
 
     cur.execute(
         """
-        INSERT INTO title (title, media_type, release_year)
-        VALUES (%s, %s, %s)
+        INSERT INTO title (imdb_reference_id, title, media_type, release_year)
+        VALUES (%s, %s, %s, %s)
         RETURNING id
         """,
-        (title_name, media_type_id, release_year),
+        (imdb_reference_id, title_name, media_type_id, release_year),
     )
     return cur.fetchone()[0]
 
@@ -189,6 +217,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def has_existing_title_or_contributor_data(cur) -> bool:
+    """Return True when title or contributor already contains rows."""
+    cur.execute("SELECT EXISTS (SELECT 1 FROM title LIMIT 1)")
+    title_has_rows = cur.fetchone()[0]
+    cur.execute("SELECT EXISTS (SELECT 1 FROM contributor LIMIT 1)")
+    contributor_has_rows = cur.fetchone()[0]
+    return title_has_rows or contributor_has_rows
+
+
 def main() -> None:
     """Load movies and people samples into normalized tables."""
     args = parse_args()
@@ -213,6 +250,13 @@ def main() -> None:
 
     with psycopg2.connect(database_url) as conn:
         with conn.cursor() as cur:
+            if has_existing_title_or_contributor_data(cur):
+                print(
+                    "Data already exists in title or contributor table. "
+                    "Skipping CSV insert.",
+                )
+                return
+
             movie_media_type_id = ensure_lookup(cur, "media_type_lkup", "movie")
             title_ids_by_tconst: dict[str, int] = {}
 
@@ -224,20 +268,32 @@ def main() -> None:
 
                 release_year = parse_year(row.get("startYear"))
                 title_id_before = None
-                cur.execute(
-                    """
-                    SELECT id FROM title
-                    WHERE title = %s AND media_type = %s
-                      AND ((release_year IS NULL AND %s IS NULL) OR release_year = %s)
-                    LIMIT 1
-                    """,
-                    (title_name, movie_media_type_id, release_year, release_year),
-                )
+                if tconst:
+                    cur.execute(
+                        "SELECT id FROM title WHERE imdb_reference_id = %s LIMIT 1",
+                        (tconst,),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        SELECT id FROM title
+                        WHERE title = %s AND media_type = %s
+                          AND ((release_year IS NULL AND %s IS NULL) OR release_year = %s)
+                        LIMIT 1
+                        """,
+                        (title_name, movie_media_type_id, release_year, release_year),
+                    )
                 row_before = cur.fetchone()
                 if row_before:
                     title_id_before = row_before[0]
 
-                title_id = ensure_title(cur, title_name, movie_media_type_id, release_year)
+                title_id = ensure_title(
+                    cur,
+                    imdb_reference_id=tconst,
+                    title_name=title_name,
+                    media_type_id=movie_media_type_id,
+                    release_year=release_year,
+                )
                 if title_id_before is None:
                     inserted_titles += 1
                 if tconst:
@@ -263,16 +319,27 @@ def main() -> None:
                         title_genre_links += 1
 
             for row in read_csv_rows(people_csv):
+                nconst = normalize(row.get("nconst"))
                 person_name = normalize(row.get("primaryName"))
                 if not person_name:
                     continue
 
-                cur.execute(
-                    "SELECT id FROM contributor WHERE name = %s LIMIT 1",
-                    (person_name,),
-                )
+                if nconst:
+                    cur.execute(
+                        "SELECT id FROM contributor WHERE imdb_reference_id = %s LIMIT 1",
+                        (nconst,),
+                    )
+                else:
+                    cur.execute(
+                        "SELECT id FROM contributor WHERE name = %s LIMIT 1",
+                        (person_name,),
+                    )
                 existing = cur.fetchone()
-                contributor_id = existing[0] if existing else ensure_contributor(cur, person_name)
+                contributor_id = (
+                    existing[0]
+                    if existing
+                    else ensure_contributor(cur, name=person_name, imdb_reference_id=nconst)
+                )
                 if not existing:
                     inserted_contributors += 1
 
