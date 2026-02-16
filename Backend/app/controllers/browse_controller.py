@@ -6,6 +6,12 @@ from datetime import datetime, UTC
 
 from fastapi import APIRouter, Query
 
+from app.core.api_docs import (
+    BrowseGenreResponse,
+    BrowseTitlesResponse,
+    DEFAULT_ERROR_RESPONSES,
+    ErrorResponse,
+)
 from app.core.exceptions import InvalidInputError
 from app.service_logic.browse_service_logic import (
     browse_genres as browse_genres_service,
@@ -16,19 +22,71 @@ router = APIRouter(prefix="/browse", tags=["browse"])
 MAX_PAGE_SIZE = 50
 
 
-@router.get("/genres")
+@router.get(
+    "/genres",
+    response_model=list[BrowseGenreResponse],
+    summary="List Browse Genres",
+    description=(
+        "Returns all genres available for filtering movie browse/search results. "
+        "Use the returned `id` as the `genre` query parameter in `GET /browse`."
+    ),
+    responses={
+        500: {
+            "model": ErrorResponse,
+            "description": "Internal server error.",
+        }
+    },
+)
 def browse_genres() -> list[dict]:
     """Return available genres for browse filters."""
     return browse_genres_service()
 
 
-@router.get("")
+@router.get(
+    "",
+    response_model=BrowseTitlesResponse,
+    summary="Browse Movies",
+    description=(
+        "Returns a paginated movie list. Supports free-text search across movie titles, "
+        "contributors, genres, and release year text, with optional structured filters."
+    ),
+    responses=DEFAULT_ERROR_RESPONSES,
+)
 def browse_titles(
-    offset: str | None = Query(None, description="Pagination offset"),
-    page_size: str | None = Query(None, description="Pagination page size"),
-    search_text: str | None = Query(None, description="Search text"),
-    release_year: str | None = Query(None, description="Release year filter"),
-    genre: str | None = Query(None, description="Genre ID filter"),
+    offset: str | None = Query(
+        None,
+        description="Pagination offset. Expected type: integer. Defaults to 0.",
+        examples=["0"],
+    ),
+    page_size: str | None = Query(
+        None,
+        description=(
+            "Page size. Expected type: integer. Defaults to 10. "
+            "Accepted range: 1 to 50."
+        ),
+        examples=["28"],
+    ),
+    search_text: str | None = Query(
+        None,
+        description=(
+            "Optional free-text query. Search tokens are matched against movie title, "
+            "contributor name, genre name, and release year text."
+        ),
+        examples=["matrix keanu"],
+    ),
+    release_year: str | None = Query(
+        None,
+        description=(
+            "Optional release year filter. Expected type: integer. "
+            "Must be less than the current year."
+        ),
+        examples=["1999"],
+    ),
+    genre: str | None = Query(
+        None,
+        description="Optional genre filter. Expected type: integer genre ID.",
+        examples=["1"],
+    ),
 ) -> dict:
     """Browse titles by optional search text and filters."""
     current_year = datetime.now(UTC).year

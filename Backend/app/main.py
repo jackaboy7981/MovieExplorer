@@ -6,7 +6,27 @@ from app.core.handler import register_error_handlers
 from app.core.router import register_routers
 
 app = FastAPI(
-    title="My API", version="1.0", docs_url="/docs" if _config.ENV == "dev" else None
+    title="MovieExplorer API",
+    description=(
+        "APIs to browse movies and genres, fetch detailed movie records, "
+        "and fetch contributor (actor/director) profiles with related movies."
+    ),
+    version="1.0",
+    docs_url="/docs" if _config.ENV == "dev" else None,
+    openapi_tags=[
+        {
+            "name": "browse",
+            "description": "Browse and search movie results with pagination and filters.",
+        },
+        {
+            "name": "title",
+            "description": "Movie-level detail APIs.",
+        },
+        {
+            "name": "contributor",
+            "description": "Contributor (actor/director) detail APIs.",
+        },
+    ],
 )
 
 app.add_middleware(

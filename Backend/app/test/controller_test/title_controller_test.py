@@ -21,6 +21,7 @@ def test_get_title_details_returns_service_payload(monkeypatch) -> None:
     """Valid title id should return service payload."""
     expected = {
         "id": 10,
+        "imdb_reference_id": "tt0133093",
         "title": "The Matrix",
         "release_year": 1999,
         "media_type": "movie",
