@@ -16,7 +16,7 @@ router = APIRouter(prefix="/browse", tags=["browse"])
 MAX_PAGE_SIZE = 50
 
 
-@router.get("/genre")
+@router.get("/genres")
 def browse_genres() -> list[dict]:
     """Return available genres for browse filters."""
     return browse_genres_service()

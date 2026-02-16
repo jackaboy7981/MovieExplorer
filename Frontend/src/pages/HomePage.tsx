@@ -36,6 +36,7 @@ function HomePage({ searchText }: HomePageProps) {
     (_, index) => String(currentYear - 1 - index),
   );
 
+  // Load genre options only when search mode is active; reset filter state otherwise.
   useEffect(() => {
     if (!isSearchActive) {
       setSelectedGenre("");
@@ -102,6 +103,7 @@ function HomePage({ searchText }: HomePageProps) {
     selectedReleaseYear,
   ]);
 
+  // Fetch browse results whenever search mode/filter inputs change.
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
@@ -135,10 +137,9 @@ function HomePage({ searchText }: HomePageProps) {
         setHasMoreSearchResults(false);
         setErrorMessage(error instanceof Error ? error.message : "Failed to fetch browse data.");
       } finally {
-        if (!isMounted) {
-          return;
+        if (isMounted) {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
 
@@ -149,6 +150,7 @@ function HomePage({ searchText }: HomePageProps) {
     };
   }, [isSearchActive, searchText, selectedGenre, selectedReleaseYear]);
 
+  // In search mode, observe a bottom sentinel to auto-load more results while scrolling.
   useEffect(() => {
     if (!isSearchActive || !hasMoreSearchResults) {
       return;

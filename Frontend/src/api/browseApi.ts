@@ -34,7 +34,7 @@ export interface BrowseGenreOption {
 }
 
 export async function fetchBrowseGenres(): Promise<BrowseGenreOption[]> {
-  const genreUrl = buildApiUrl("browse/genre");
+  const genreUrl = buildApiUrl("browse/genres");
   const response = await fetch(genreUrl.toString());
   if (!response.ok) {
     throw new Error(`Browse genre request failed with status ${response.status}`);

@@ -61,12 +61,12 @@ function Viewer<T extends { id: number }>({
 
   useEffect(() => {
     if (!horizontal) {
-      setCanScrollLeft(false);
-      setCanScrollRight(false);
       return;
     }
 
-    updateScrollState();
+    const initialFrame = requestAnimationFrame(() => {
+      updateScrollState();
+    });
 
     const handleWindowResize = () => {
       updateScrollState();
@@ -74,6 +74,7 @@ function Viewer<T extends { id: number }>({
     window.addEventListener("resize", handleWindowResize);
 
     return () => {
+      cancelAnimationFrame(initialFrame);
       window.removeEventListener("resize", handleWindowResize);
     };
   }, [horizontal, data, updateScrollState]);

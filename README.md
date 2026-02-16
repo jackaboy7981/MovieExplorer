@@ -1,6 +1,14 @@
 # MovieExplorer
 
-MovieExplorer is a full-stack app to explore movies and contributors (actors/directors), open movie details, open contributor details, and search/filter titles by text, genre, and release year.
+MovieExplorer is a full-stack platform to explore movies, actors, and directors.
+
+The search experience is global: you can search by movie title, contributor names (actors/directors), genres, and release year terms. You can also refine results with filters like release year and genre.
+
+Search results use infinite scrolling (lazy loading): as you scroll down, additional results are fetched automatically and appended to the list.
+
+Each movie has a dedicated page with key details such as title, genres, release year, and contributor information (actors/directors). Each contributor has a dedicated profile page showing their roles and the movies they have worked on.
+
+If you want to verify this behavior, open browser DevTools → Network tab, search with a broad term (for example `a`), and scroll down to see additional paginated `/browse` requests being triggered.
 
 ## Run The Project
 
@@ -62,7 +70,6 @@ Open `http://localhost:5173`.
 From `Backend/`:
 
 ```bash
-uv sync
 uv run python -m pytest app/test -q
 ```
 
@@ -70,8 +77,27 @@ uv run python -m pytest app/test -q
 From `Frontend/`:
 
 ```bash
-npm install
 npm run test
+```
+
+## Linting
+
+Linting tools used:
+- Backend: `pylint`
+- Frontend: `eslint`
+
+### Backend lint
+From `Backend/`:
+
+```bash
+uv run pylint app
+```
+
+### Frontend lint
+From `Frontend/`:
+
+```bash
+npm run lint
 ```
 
 ## Data + DB Flow
@@ -120,7 +146,7 @@ Base path: `Backend/app`
 ### Main APIs
 - `GET /browse`
   - Query params: `offset`, `page_size`, `search_text`, `release_year`, `genre`
-- `GET /browse/genre`
+- `GET /browse/genres`
   - Returns available genre options
 - `GET /title/{title_id}`
   - Returns title details, genres, and contributors

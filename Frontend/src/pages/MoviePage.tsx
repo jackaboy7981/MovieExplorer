@@ -33,10 +33,9 @@ function MoviePage() {
         setTitleData(null);
         setErrorMessage(error instanceof Error ? error.message : "Failed to fetch title data.");
       } finally {
-        if (!isMounted) {
-          return;
+        if (isMounted) {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
 
@@ -65,6 +64,10 @@ function MoviePage() {
           {titleData?.genres && titleData.genres.length > 0
             ? titleData.genres.join(", ")
             : "Not available"}
+        </div>
+        <div className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+          <span className="font-semibold">Release Year:</span>{" "}
+          {titleData?.release_year ?? "Not available"}
         </div>
         <Viewer<ContributorItem>
           data={titleData?.contributors ?? []}

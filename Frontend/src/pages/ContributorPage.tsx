@@ -35,10 +35,9 @@ function ContributorPage() {
           error instanceof Error ? error.message : "Failed to fetch contributor data.",
         );
       } finally {
-        if (!isMounted) {
-          return;
+        if (isMounted) {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
 
@@ -49,10 +48,6 @@ function ContributorPage() {
     };
   }, [numericId]);
 
-  if (!id || Number.isNaN(numericId) || numericId <= 0) {
-    return <Navigate to="/" replace />;
-  }
-
   const contributions = useMemo(() => {
     const uniqueRoles = new Set(
       (contributorData?.titles ?? []).flatMap((title) => title.roles ?? []),
@@ -61,6 +56,10 @@ function ContributorPage() {
   }, [contributorData]);
 
   const workedMovies: TitleItem[] = contributorData?.titles ?? [];
+
+  if (!id || Number.isNaN(numericId) || numericId <= 0) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl">

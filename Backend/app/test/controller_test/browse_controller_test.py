@@ -154,7 +154,7 @@ def test_browse_genres_returns_service_payload(monkeypatch) -> None:
     monkeypatch.setattr(browse_controller, "browse_genres_service", fake_browse_genres_service)
     client = _build_client()
 
-    response = client.get("/browse/genre")
+    response = client.get("/browse/genres")
 
     assert response.status_code == 200
     assert response.json() == expected

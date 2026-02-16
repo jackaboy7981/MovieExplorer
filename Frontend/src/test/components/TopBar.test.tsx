@@ -36,7 +36,7 @@ describe("TopBar", () => {
   it("disables Go button when search is empty and submits when text is provided", () => {
     const { onSearch } = renderTopBar("/");
 
-    const input = screen.getByPlaceholderText("Search");
+    const input = screen.getByPlaceholderText("Search movies, directors, actors, or genres");
     const goButton = screen.getByRole("button", { name: "Go" });
 
     expect(goButton).toBeDisabled();
@@ -50,7 +50,7 @@ describe("TopBar", () => {
 
   it("calls clear callback when input is cleared", () => {
     const { onClearSearch } = renderTopBar("/");
-    const input = screen.getByPlaceholderText("Search");
+    const input = screen.getByPlaceholderText("Search movies, directors, actors, or genres");
 
     fireEvent.change(input, { target: { value: "keanu" } });
     fireEvent.change(input, { target: { value: "" } });
