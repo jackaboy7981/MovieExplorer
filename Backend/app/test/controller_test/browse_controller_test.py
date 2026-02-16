@@ -87,6 +87,20 @@ def test_browse_titles_rejects_invalid_page_size() -> None:
     }
 
 
+def test_browse_titles_rejects_page_size_above_limit() -> None:
+    """Page size > 50 should return invalid input error."""
+    client = _build_client()
+
+    response = client.get("/browse", params={"page_size": "51"})
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "message": "Invalid input: page_size is invalid",
+        "error_code": 1000,
+        "status_code": 400,
+    }
+
+
 def test_browse_titles_rejects_release_year_not_less_than_current_year() -> None:
     """Release year must be less than current year."""
     client = _build_client()

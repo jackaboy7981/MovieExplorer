@@ -13,6 +13,7 @@ from app.service_logic.browse_service_logic import (
 )
 
 router = APIRouter(prefix="/browse", tags=["browse"])
+MAX_PAGE_SIZE = 50
 
 
 @router.get("/genre")
@@ -38,7 +39,7 @@ def browse_titles(
 
     if parsed_offset < 0:
         raise InvalidInputError("offset")
-    if parsed_page_size <= 0:
+    if parsed_page_size <= 0 or parsed_page_size > MAX_PAGE_SIZE:
         raise InvalidInputError("page_size")
     if parsed_release_year is not None and (
         parsed_release_year <= 0 or parsed_release_year >= current_year
