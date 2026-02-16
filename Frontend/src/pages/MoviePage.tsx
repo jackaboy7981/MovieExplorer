@@ -60,6 +60,12 @@ function MoviePage() {
           src={filmPoster}
           alt={`${titleData?.title ?? "Movie"} poster`}
         />
+        <div className="mt-3 text-sm text-slate-700 dark:text-slate-300">
+          <span className="font-semibold">Genres:</span>{" "}
+          {titleData?.genres && titleData.genres.length > 0
+            ? titleData.genres.join(", ")
+            : "Not available"}
+        </div>
         <Viewer<ContributorItem>
           data={titleData?.contributors ?? []}
           isLoading={isLoading}

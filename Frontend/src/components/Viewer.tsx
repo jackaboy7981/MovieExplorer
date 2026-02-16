@@ -7,6 +7,7 @@ interface ViewerProps<T extends { id: number }> {
   errorMessage: string | null;
   horizontal?: boolean;
   headingText?: string;
+  emptyStateText?: string;
   ItemComponent: ComponentType<{ item: T }>;
 }
 
@@ -16,6 +17,7 @@ function Viewer<T extends { id: number }>({
   errorMessage,
   horizontal = false,
   headingText = "",
+  emptyStateText = "No results found.",
   ItemComponent,
 }: ViewerProps<T>) {
   const horizontalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +83,12 @@ function Viewer<T extends { id: number }>({
       {headingText ? <p className="text-base font-medium">{headingText}</p> : null}
       {isLoading && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Loading...</p>}
       {errorMessage && <p className="mt-3 text-sm text-red-600">{errorMessage}</p>}
-      {!isLoading && !errorMessage && (
+      {!isLoading && !errorMessage && data.length === 0 && (
+        <p className="mt-10 text-center text-lg font-medium text-slate-600 dark:text-slate-300">
+          {emptyStateText}
+        </p>
+      )}
+      {!isLoading && !errorMessage && data.length > 0 && (
         <>
           {horizontal ? (
             <div className="relative mt-4">

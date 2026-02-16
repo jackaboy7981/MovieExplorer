@@ -31,6 +31,31 @@ def fetch_title_by_id(title_id: int) -> tuple | None:
     return title_row
 
 
+def fetch_genres_by_title_id(title_id: int) -> list[str]:
+    """Fetch genre names for a title."""
+    conn = db.get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT g.name
+                FROM title_genre tg
+                JOIN genre_type_lkup g ON g.id = tg.genre_id
+                WHERE tg.title_id = %s
+                ORDER BY g.name
+                """,
+                (title_id,),
+            )
+            genre_rows = cur.fetchall()
+    except Exception as exc:
+        raise DataProviderError() from exc
+    finally:
+        if conn is not None and db.connection_pool is not None:
+            db.connection_pool.putconn(conn)
+
+    return [row[0] for row in genre_rows]
+
+
 def fetch_titles_by_contributor_id(contributor_id: int) -> list[tuple]:
     """Fetch title-role rows for a contributor."""
     conn = db.get_db_connection()

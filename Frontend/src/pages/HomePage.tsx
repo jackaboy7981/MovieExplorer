@@ -229,6 +229,7 @@ function HomePage({ searchText }: HomePageProps) {
           errorMessage={errorMessage}
           horizontal={!isSearchActive}
           headingText=""
+          emptyStateText={isSearchActive ? "No movies found." : "No movies available."}
           ItemComponent={Movie}
         />
         {isSearchActive && hasMoreSearchResults && !errorMessage && (

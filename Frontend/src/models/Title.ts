@@ -14,5 +14,6 @@ export interface TitleDetailsResponse {
   title: string;
   release_year: number | null;
   media_type: string;
+  genres: string[];
   contributors: ContributorItem[];
 }

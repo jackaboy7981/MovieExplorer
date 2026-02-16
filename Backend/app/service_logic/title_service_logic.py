@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from app.core.exceptions import TitleNotFound
 from app.data_providers.contributor_data_provider import fetch_contributors_by_title_id
-from app.data_providers.title_data_provider import fetch_title_by_id
+from app.data_providers.title_data_provider import fetch_genres_by_title_id, fetch_title_by_id
 
 
 def get_title_details(title_id: int) -> dict:
@@ -16,6 +16,7 @@ def get_title_details(title_id: int) -> dict:
     if not title_row:
         raise TitleNotFound(title_id)
 
+    genre_names = fetch_genres_by_title_id(title_id)
     contributor_rows = fetch_contributors_by_title_id(title_id)
 
     contributors_map: dict[int, dict] = defaultdict(
@@ -36,5 +37,6 @@ def get_title_details(title_id: int) -> dict:
         "title": title_row[2],
         "release_year": title_row[3],
         "media_type": title_row[4],
+        "genres": genre_names,
         "contributors": list(contributors_map.values()),
     }
