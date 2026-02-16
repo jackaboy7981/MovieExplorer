@@ -6,6 +6,28 @@ from app.core import db
 from app.core.exceptions import DataProviderError
 
 
+def fetch_browse_genres() -> list[dict]:
+    """Fetch all genre ids and names for browse filters."""
+    conn = db.get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT g.id, g.name
+                FROM genre_type_lkup g
+                ORDER BY g.name, g.id
+                """
+            )
+            rows = cur.fetchall()
+    except Exception as exc:
+        raise DataProviderError() from exc
+    finally:
+        if conn is not None and db.connection_pool is not None:
+            db.connection_pool.putconn(conn)
+
+    return [{"id": row[0], "name": row[1]} for row in rows]
+
+
 def fetch_browse_titles(
     search_words: list[str],
     release_year: int | None,

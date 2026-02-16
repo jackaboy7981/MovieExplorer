@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.core.exceptions import InvalidInputError
-from app.data_providers.browse_data_provider import fetch_browse_titles
+from app.data_providers.browse_data_provider import fetch_browse_genres, fetch_browse_titles
 
 
 def browse_titles(
@@ -40,6 +40,11 @@ def browse_titles(
         "page_size": page_size,
         "results": items,
     }
+
+
+def browse_genres() -> list[dict]:
+    """Return available genres for browse filtering."""
+    return fetch_browse_genres()
 
 
 def _tokenize_search_text(search_text: str | None) -> list[str]:

@@ -7,9 +7,18 @@ from datetime import datetime, UTC
 from fastapi import APIRouter, Query
 
 from app.core.exceptions import InvalidInputError
-from app.service_logic.browse_service_logic import browse_titles as browse_titles_service
+from app.service_logic.browse_service_logic import (
+    browse_genres as browse_genres_service,
+    browse_titles as browse_titles_service,
+)
 
 router = APIRouter(prefix="/browse", tags=["browse"])
+
+
+@router.get("/genre")
+def browse_genres() -> list[dict]:
+    """Return available genres for browse filters."""
+    return browse_genres_service()
 
 
 @router.get("")
@@ -69,4 +78,3 @@ def _parse_optional_int_value(value: str | None, field_name: str) -> int | None:
         return int(value)
     except ValueError as exc:
         raise InvalidInputError(field_name) from exc
-
