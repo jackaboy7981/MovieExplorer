@@ -6,6 +6,7 @@ export interface TitleItem {
   title: string;
   release_year: number | null;
   media_type: string;
+  roles: string[];
 }
 
 export interface TitleDetailsResponse {

@@ -60,13 +60,7 @@ function ContributorPage() {
     return [...uniqueRoles];
   }, [contributorData]);
 
-  const workedMovies: TitleItem[] = (contributorData?.titles ?? []).map((title) => ({
-    id: title.id,
-    imdb_reference_id: title.imdb_reference_id,
-    title: title.title,
-    release_year: title.release_year,
-    media_type: title.media_type,
-  }));
+  const workedMovies: TitleItem[] = contributorData?.titles ?? [];
 
   return (
     <main className="mx-auto w-full max-w-6xl">
