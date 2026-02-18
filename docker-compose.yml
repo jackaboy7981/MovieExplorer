@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U movie_user -d movie_db"]
       interval: 5s
@@ -27,14 +28,28 @@ services:
     environment:
       DATABASE_URL: postgresql://movie_user:movie_pass@db:5432/movie_db
       ENV: dev
+      PYTHONUNBUFFERED: "1"
     ports:
       - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      start_period: 20m
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build: ./Frontend
     container_name: movie_frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "5173:5173"
 

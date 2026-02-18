@@ -194,6 +194,27 @@ def read_csv_rows(path: Path) -> Iterable[dict[str, str]]:
             yield row
 
 
+def count_csv_data_rows(path: Path) -> int:
+    """Count data rows in a CSV file (excluding header)."""
+    with path.open("r", encoding="utf-8", newline="") as file:
+        reader = csv.reader(file)
+        next(reader, None)
+        return sum(1 for _ in reader)
+
+
+def print_progress(processed: int, total: int, last_reported_percent: int) -> int:
+    """Print progress in 5% milestones using newline-based logs."""
+    if total <= 0:
+        return last_reported_percent
+
+    percent = int((processed * 100) / total)
+    milestone = (percent // 5) * 5
+    if milestone > last_reported_percent:
+        print(f"Seeding progress: {milestone:3d}% ({processed}/{total})")
+        return milestone
+    return last_reported_percent
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments for standalone execution."""
     parser = argparse.ArgumentParser(
@@ -247,6 +268,11 @@ def main() -> None:
     inserted_contributors = 0
     contributor_title_links = 0
     title_genre_links = 0
+    total_movies = count_csv_data_rows(movies_csv)
+    total_people = count_csv_data_rows(people_csv)
+    total_rows = total_movies + total_people
+    processed_rows = 0
+    last_reported_percent = -1
 
     with psycopg2.connect(database_url) as conn:
         with conn.cursor() as cur:
@@ -261,6 +287,13 @@ def main() -> None:
             title_ids_by_tconst: dict[str, int] = {}
 
             for row in read_csv_rows(movies_csv):
+                processed_rows += 1
+                last_reported_percent = print_progress(
+                    processed_rows,
+                    total_rows,
+                    last_reported_percent,
+                )
+
                 tconst = normalize(row.get("tconst"))
                 title_name = normalize(row.get("primaryTitle"))
                 if not title_name:
@@ -319,6 +352,13 @@ def main() -> None:
                         title_genre_links += 1
 
             for row in read_csv_rows(people_csv):
+                processed_rows += 1
+                last_reported_percent = print_progress(
+                    processed_rows,
+                    total_rows,
+                    last_reported_percent,
+                )
+
                 nconst = normalize(row.get("nconst"))
                 person_name = normalize(row.get("primaryName"))
                 if not person_name:
@@ -359,6 +399,9 @@ def main() -> None:
                         )
                         if inserted:
                             contributor_title_links += 1
+
+    if total_rows > 0 and last_reported_percent < 100:
+        print(f"Seeding progress: 100% ({total_rows}/{total_rows})")
 
     print(f"Inserted titles: {inserted_titles}")
     print(f"Inserted contributors: {inserted_contributors}")

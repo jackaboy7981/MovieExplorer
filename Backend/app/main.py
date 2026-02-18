@@ -44,6 +44,12 @@ register_error_handlers(app)
 register_routers(app)
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    """Liveness endpoint for container/platform health checks."""
+    return {"status": "ok"}
+
+
 @app.on_event("startup")
 def startup() -> None:
     """Initialize DB resources when app starts."""
